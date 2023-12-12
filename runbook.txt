@@ -1,0 +1,46 @@
+PREREQUISITES:
+
+Python 3.8 or higher
+nix 
+poetry
+Docker
+
+
+To set up the tooling environment (in a local context) and run the data pipelines:
+
+ - clone the repo
+ - issue "nix-shell" to install the system dependencies
+ - issue 
+    "poetry install"
+
+    and then
+
+    "poetry shell" 
+    
+    to install the Python dependencies and start the virtual environment
+
+ - set the necessary environment vars: 
+
+	PYTHONPATH must include the repository root directory. ( export PYTHONPATH=`pwd` )
+
+Then, at the shell prompt, issue:
+
+ make <pipeline-name>
+
+ where <pipeline-name> is the name of a make target
+ 
+and check the <repo_root>/data directory for the outputs.
+
+(You may need to spin up the local Postgres Docker-container if it is not already running.)
+
+++++++++++++++++++++++++++++++++++
++
++ Makefile instrumentation: "makeblocks"
+
+The Makefile may contain some comments which contain a particular syntax of the form:
+
++open-varblock(...)
++open-cmdblock(...)
+
+and so on. These comments are part of the data pipeline testing and instrumentation system. Do not alter or remove them
+unless you know what you are doing.

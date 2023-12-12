@@ -1,0 +1,10 @@
+config
+data
+static_data
+generated_configs
+temp_data
+temp_sql
+scripts
+template_files
+sql
+

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "neworacle"
+version = "0.1.0"
+description = ""
+authors = ["Dexter Taylor <binarymachineshop@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+mercury-toolkit = "^0.9.86"
+pymongo = "^4.6.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,74 @@
+# 
+# YAML init file for ngst
+#
+
+globals:
+    project_home: $NX_HOME
+    service_module: nx_services
+    datastore_module: nx_datastores    
+
+service_objects:
+
+  mongo:
+    class: MongoService
+    init_params:
+      - name: host
+        value: 172.21.0.2
+
+      - name: port
+        value: 27017
+
+      - name: db_name
+        value: nxdocs
+
+
+  postgres:
+    class: PostgreSQLService
+    init_params:
+      - name: host
+        value: localhost
+  
+      - name: port
+        value: $NX_PG_PORT
+  
+      - name: dbname
+        value: nxdb
+
+      - name: schema
+        value: public
+  
+      - name: username
+        value: $NX_PG_USER
+  
+      - name: password
+        value: $NX_PG_PASSWORD
+
+      - name: connect_timeout
+        value: 5
+      
+datastores:
+
+  mongo:
+    class: MongoDatastore
+    init_params:
+
+    channel_select_function: 
+    channels:
+  
+  pg:
+    class: PostgresDatastore
+    init_params:
+        
+    channel_select_function: 
+    channels:
+        
+
+ingest_targets:
+
+  mongodb:
+    datastore: mongo
+    checkpoint_interval: 1000
+
+  sqldb:
+    datastore: pg
+    checkpoint_interval: 1000

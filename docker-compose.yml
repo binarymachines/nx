@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+ 
+  postgres:
+    container_name: nxdb
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      PGPASSWORD: pass
+    image: postgres:14.6-alpine
+    ports:
+      - "15433:5432"
+    volumes:
+      - nxdb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "psql", "-h", "localhost", "postgres", "-U", "user", "-c", "select 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    depends_on:
+      - mongo
+        
+
+  mongo:
+    image: mongo
+    container_name: nx-mongo
+    ports:
+      - 27017:27017
+      - 28017:28017
+    volumes:
+      - mongo-data:/var/lib/mongodb/data
+
+
+volumes:
+  nxdb-data: {}
+  mongo-data: {}
