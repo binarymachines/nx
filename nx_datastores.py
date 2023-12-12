@@ -6,6 +6,8 @@ from mercury.dataload import DataStore
 from mercury.mlog import mlog, mlog_err
 import uuid
 from collections import namedtuple
+from datetime import datetime
+from nx_utils import convert_to_timestamp
 
 
 class ObjectFactory(object):
@@ -20,9 +22,7 @@ class MongoDatastore(DataStore):
         super().__init__(service_object_registry, *channels, **kwargs)
 
 
-    def write_reddit_doc(self, record, mongo_db_svc):
-        print('writing Mongo record...')
-
+    def write_reddit_doc(self, record, mongo_db_svc):        
         db = mongo_db_svc.get_database()
         collection = db['reddit_posts']
         id = collection.insert_one(record).inserted_id
@@ -39,8 +39,9 @@ class MongoDatastore(DataStore):
                 output_record = rec['data']
                 newid =  self.write_reddit_doc(output_record, mongo_svc)
                 
+                output_record.pop('_id')
                 output_record['mongo_id'] = newid
-                print(output_record)
+                print(json.dumps(output_record))
 
             except Exception as err:
                 mlog_err(
@@ -85,10 +86,49 @@ class PostgresDatastore(DataStore):
         return bvalues
     
 
+    def prepare_date_time_values(self, int_timestamp_seconds):
+
+        olap = self.service_object_registry.lookup('olap')
+
+        dt = datetime.fromtimestamp(int_timestamp_seconds)
+        date_time_string = str(dt)
+        
+        # This will give us the format: '2023-10-31 21:15:30'
+
+        datetime_tokens = date_time_string.split(' ')
+        date_part = datetime_tokens[0]
+        time_part = datetime_tokens[1]
+
+        date_tokens = date_part.split('-')
+        date_year = date_tokens[0]
+        date_month = date_tokens[1]
+        date_day = date_tokens[2]
+
+        time_tokens = time_part.split(':')
+        time_hour = time_tokens[0]
+        time_minute = time_tokens[1]
+
+        day_id = olap.dim_id_for_value('dim_date_day', int(date_day))
+        month_id = olap.dim_id_for_value('dim_date_month', int(date_month))
+        year_id = olap.dim_id_for_value('dim_date_year', int(date_year))
+
+        hour_id = olap.dim_id_for_value('dim_time_hour', int(time_hour))
+        minute_id = olap.dim_id_for_value('dim_time_minute', int(time_minute))
+
+        return {
+            'dim_date_month_id': month_id,
+            'dim_date_day_id': day_id,
+            'dim_date_year_id': year_id,
+            'dim_time_hour_id': hour_id,
+            'dim_time_minute_id': minute_id
+        }
+
+
     def write_reddit_data(self, record, db_service, **write_params):
         output_rec = record
 
         with db_service.txn_scope() as session:  
+
             post_data = {
                 'id': str(uuid.uuid4()),
                 'mdb_object_id': 'mongo_id_placeholder',
@@ -103,8 +143,9 @@ class PostgresDatastore(DataStore):
                 'event_timestamp': record['created_utc']
             }
 
-            binned_value_names = self.prepare_binned_values(post_data)
+            post_data.update(self.prepare_date_time_values(record['created_utc']))
 
+            binned_value_names = self.prepare_binned_values(post_data)
 
             """
             new_post = ObjectFactory.create_db_object(

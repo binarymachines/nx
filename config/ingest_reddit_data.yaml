@@ -9,6 +9,34 @@ globals:
 
 service_objects:
 
+  olap:
+    class: OLAPDimensionSvc
+    init_params:
+      - name: host
+        value: $NX_PG_HOST
+  
+      - name: port
+        value: $NX_PG_PORT
+  
+      - name: dbname
+        value: nxdb
+
+      - name: schema
+        value: public
+  
+      - name: username
+        value: $NX_PG_USER
+  
+      - name: password
+        value: $NX_PG_PASSWORD
+
+      - name: connect_timeout
+        value: 5
+
+      - name: dimension_tables
+        value: [dim_date_day, dim_date_month, dim_date_year]
+
+
   mongo:
     class: MongoService
     init_params:
@@ -26,7 +54,7 @@ service_objects:
     class: PostgreSQLService
     init_params:
       - name: host
-        value: localhost
+        value: $NX_PG_HOST
   
       - name: port
         value: $NX_PG_PORT

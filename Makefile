@@ -84,6 +84,30 @@ db-create-tables:
 db-init: gen-db-script gen-dba-script gen-perm-script db-create-database db-create-dbauser db-set-perms db-create-tables
 
 
+db-generate-dim-data:
+	cat /dev/null > temp_sql/dimension_data.sql
+
+	dgenr8 --plugin-module dim_day_generator --sql --schema public --dim-table dim_date_day --columns id value label \
+	>> temp_sql/dimension_data.sql
+
+	dgenr8 --plugin-module dim_month_generator --sql --schema public --dim-table dim_date_month --columns id value label \
+	>> temp_sql/dimension_data.sql
+	
+	dgenr8 --plugin-module dim_year_generator --sql --schema public --dim-table dim_date_year --columns id value label \
+	>> temp_sql/dimension_data.sql
+
+	dgenr8 --plugin-module dim_minute_generator --sql --schema public --dim-table dim_time_minute --columns id value label \
+	>> temp_sql/dimension_data.sql
+
+	dgenr8 --plugin-module dim_hour_generator --sql --schema public --dim-table dim_time_hour --columns id value label \
+	>> temp_sql/dimension_data.sql
+
+
+db-populate-dimensions:
+	export PGPASSWORD=$$CVX_DBA_PASSWORD && psql -h localhost -U cvxdba -d civix -f temp_sql/dimension_data.sql
+
+
+
 docker-login:
 	$(eval CONTAINER_ID=$(shell docker ps |grep postgres | grep alpine | awk '{ print $$1 }'))
 	
@@ -95,10 +119,6 @@ docker-login:
 # Pipeline targets
 #_______________________________________________________________________
 #
-
-pipeline-sample:
-	xfile -p --delimiter '|' data/data_sample.csv --limit 5 | jq
-
 
 pipeline-ingest-mongo:
 	cat static_data/reddit_submissions.jsonl \

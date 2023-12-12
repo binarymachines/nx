@@ -54,10 +54,10 @@ def one_of(*args):
     return eval(expression)
 
 
-def convert_to_timestamp(date_string: str):
+def convert_to_timestamp(date_string: str, date_time_separator='T'):
     #  "2021-10-01T08:33:00"
 
-    date_tokens = date_string.split("T")
+    date_tokens = date_string.split(date_time_separator)
     if len(date_tokens) != 2:
         raise Exception(f"Unsupported date format: {date_string}")
 

@@ -192,8 +192,7 @@ class OLAPDimensionSvc(object):
     def get_dim_ids_for_timestamp(self, source_timestamp) -> dict:
         datestamp = datetime.datetime.fromtimestamp(int(source_timestamp))
 
-        data = {}
-        data["second"] = self.dim_id_for_value("dim_time_second", datestamp.minute)
+        data = {}        
         data["minute"] = self.dim_id_for_value("dim_time_minute", datestamp.minute)
         data["hour"] = self.dim_id_for_value("dim_time_hour", datestamp.hour)
         data["day"] = self.dim_id_for_value("dim_date_day", datestamp.day)
