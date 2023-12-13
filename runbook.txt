@@ -1,10 +1,6 @@
 PREREQUISITES:
-
-Python 3.8 or higher
-nix 
-poetry
-Docker
-
+Nix
+Python 3.11 or higher 
 
 To set up the tooling environment (in a local context) and run the data pipelines:
 
@@ -17,7 +13,7 @@ To set up the tooling environment (in a local context) and run the data pipeline
 
     "poetry shell" 
     
-    to install the Python dependencies and start the virtual environment
+    to install the Python dependencies and start the virtual environment.
 
  - set the necessary environment vars: 
 
@@ -27,11 +23,25 @@ Then, at the shell prompt, issue:
 
  make <pipeline-name>
 
- where <pipeline-name> is the name of a make target
- 
-and check the <repo_root>/data directory for the outputs.
+ where <pipeline-name> is the name of a make target, to run the code.
 
-(You may need to spin up the local Postgres Docker-container if it is not already running.)
+ The make targets are divided into Utility, (SQL) script-generation, and pipeline targets.
+ Run the init-dirs target first to create all the temporary directories the project will need.
+
+ Then issue 
+
+ make db-up 
+
+ to spin up both the MongoDB document store and the PostgreSQL OLAP database.
+
+ Mongo requires no prepopulation, but the OLAP db must be set up before running any pipelines.
+
+issue "make db-init" and "make db-prepopulate" to do this.
+ 
+You can verify the existence of the required tables by issuing "make dbalogin" and inspecting the db.
+
+Issue "make pipeline-ingest" to run the pipeline end-to-end.
+
 
 ++++++++++++++++++++++++++++++++++
 +
