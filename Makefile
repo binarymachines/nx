@@ -2,14 +2,12 @@
 ## Makefile for New World Oracle data pipelines / utility routines
 ##
 
-# TODO: add wait to all generated shell scripts which run backgrounded tasks
-#
 
-	#_______________________________________________________________________
-	#
-	# 
-	#_______________________________________________________________________
-	#
+#_______________________________________________________________________
+#
+# 
+#_______________________________________________________________________
+#
 
 
 #_______________________________________________________________________
@@ -72,16 +70,13 @@ db-set-perms:
 	psql -U user --port=15433 --host=localhost  -w -f temp_sql/set_perms.sql
 
 
-db-purge:
-	psql -U user --port=15433 --host=localhost  -w -f sql/purge.sql
+db-purge-dimensions:
+	psql -U nxdba --port=15433 --host=localhost -d nxdb -w -f sql/truncate_dimension_tables.sql
 
 
 db-create-tables:	
 	export PGPASSWORD=$$NX_PG_PASSWORD && psql -U nxdba --port=15433 --host=localhost -d nxdb -w -f sql/db_extensions.sql
 	export PGPASSWORD=$$NX_PG_PASSWORD && psql -U nxdba --port=15433 --host=localhost -d nxdb -w -f sql/nx_ddl.sql
-
-
-db-init: gen-db-script gen-dba-script gen-perm-script db-create-database db-create-dbauser db-set-perms db-create-tables
 
 
 db-generate-dim-data:
@@ -102,10 +97,24 @@ db-generate-dim-data:
 	dgenr8 --plugin-module dim_hour_generator --sql --schema public --dim-table dim_time_hour --columns id value label \
 	>> temp_sql/dimension_data.sql
 
+	dgenr8 --plugin-module dim_value_bin_generator --sql --schema public --dim-table dim_xposts_bin --columns id value label \
+	>> temp_sql/dimension_data.sql
+
+	dgenr8 --plugin-module dim_value_bin_generator --sql --schema public --dim-table dim_comments_bin --columns id value label \
+	>> temp_sql/dimension_data.sql
+
+	dgenr8 --plugin-module dim_value_bin_generator --sql --schema public --dim-table dim_upvotes_bin --columns id value label \
+	>> temp_sql/dimension_data.sql
+
 
 db-populate-dimensions:
-	export PGPASSWORD=$$CVX_DBA_PASSWORD && psql -h localhost -U cvxdba -d civix -f temp_sql/dimension_data.sql
+	psql -U nxdba --port=15433 --host=localhost -w -d nxdb -f temp_sql/dimension_data.sql
+	
 
+db-init: gen-db-script gen-dba-script gen-perm-script db-create-database db-create-dbauser db-set-perms db-create-tables
+
+
+db-prepopulate: db-purge-dimensions db-generate-dim-data db-populate-dimensions
 
 
 docker-login:
@@ -127,7 +136,7 @@ pipeline-ingest-mongo:
 
 pipeline-ingest-pg:
 	cat temp_data/raw_post_records.jsonl \
-	| ngst --config config/ingest_reddit_data.yaml --target sqldb --params=record_type:reddit_post
+	| ngst --config config/ingest_reddit_data.yaml --target sqldb --params=record_type:reddit_post --limit=1
 
 
 pipeline-ingest: pipeline-ingest-mongo pipeline-ingest-pg

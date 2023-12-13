@@ -34,7 +34,7 @@ service_objects:
         value: 5
 
       - name: dimension_tables
-        value: [dim_date_day, dim_date_month, dim_date_year]
+        value: [dim_time_minute, dim_time_hour, dim_date_day, dim_date_month, dim_date_year, dim_xposts_bin, dim_upvotes_bin, dim_comments_bin]
 
 
   mongo:

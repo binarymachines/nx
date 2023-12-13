@@ -56,7 +56,7 @@ class PostgresDatastore(DataStore):
         super().__init__(service_object_registry, *channels, **kwargs)
 
         self.bins = []
-        self.bins.append(ValueBin(min=0, max=9, name='0-10'))
+        self.bins.append(ValueBin(min=0, max=9, name='0-9'))
         self.bins.append(ValueBin(min=10, max=49, name='10-49'))
         self.bins.append(ValueBin(min=50, max=99, name='50-99'))
         self.bins.append(ValueBin(min=100, max=999, name='100-999'))
@@ -75,14 +75,21 @@ class PostgresDatastore(DataStore):
 
     def prepare_binned_values(self, record, *src_keys):
 
-        upvote_count = record['num_upvotes']
+        olap = self.service_object_registry.lookup('olap')
+
+        dim_upvotes_bin_name = self.binned_value(record['num_upvotes'])
+        dim_comments_bin_name = self.binned_value(record['num_comments'])
+        dim_crossposts_bin_name = self.binned_value(record['num_crossposts'])
+
+        print(f'+++++++++ Selected upvotes bin: {dim_upvotes_bin_name}')
+
 
         bvalues = {
-            'dim_upvotes_bin_name': self.binned_value(record['num_upvotes']),
-            'dim_comments_bin_name': self.binned_value(record['num_comments']),
-            'dim_crossposts_bin_name': self.binned_value(record['num_crossposts'])
+            'dim_upvotes_bin_id': olap.dim_id_for_value('dim_upvotes_bin', dim_upvotes_bin_name),
+            'dim_comments_bin_id': olap.dim_id_for_value('dim_comments_bin', dim_comments_bin_name),
+            'dim_xposts_bin_id': olap.dim_id_for_value('dim_xposts_bin', dim_crossposts_bin_name)
         }
-
+        
         return bvalues
     
 
@@ -144,8 +151,7 @@ class PostgresDatastore(DataStore):
             }
 
             post_data.update(self.prepare_date_time_values(record['created_utc']))
-
-            binned_value_names = self.prepare_binned_values(post_data)
+            post_data.update(self.prepare_binned_values(post_data))
 
             """
             new_post = ObjectFactory.create_db_object(
