@@ -138,7 +138,7 @@ class PostgresDatastore(DataStore):
             
             post_data = {
                 'id': str(uuid.uuid4()),
-                'mdb_object_id': 'mongo_id_placeholder',
+                'mdb_object_id': record['mongo_id'],
                 'reddit_id': record['id'],
                 'subreddit_id': record['subreddit_id'],
                 'subreddit_name': record['subreddit'],
