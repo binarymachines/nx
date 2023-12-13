@@ -42,6 +42,18 @@ dbalogin:
 	psql -U nxdba --port=15433 --host=localhost -w -d nxdb
 
 
+docker-login:
+	$(eval CONTAINER_ID=$(shell docker ps |grep postgres | grep alpine | awk '{ print $$1 }'))
+	
+	docker exec -ti $(CONTAINER_ID) /bin/bash
+
+
+#_______________________________________________________________________
+#
+# SQL generators
+#_______________________________________________________________________
+#
+#
 gen-dba-script:
 	warp --py --template-file=template_files/mkdbauser.sql.tpl \
 	--params=role:nxdba,description:Administrator,pw:$$NX_PG_PASSWORD,db_name:nxdb \
@@ -117,12 +129,6 @@ db-init: gen-db-script gen-dba-script gen-perm-script db-create-database db-crea
 db-prepopulate: db-purge-dimensions db-generate-dim-data db-populate-dimensions
 
 
-docker-login:
-	$(eval CONTAINER_ID=$(shell docker ps |grep postgres | grep alpine | awk '{ print $$1 }'))
-	
-	docker exec -ti $(CONTAINER_ID) /bin/bash
-
-
 #_______________________________________________________________________
 #
 # Pipeline targets
@@ -136,7 +142,7 @@ pipeline-ingest-mongo:
 
 pipeline-ingest-pg:
 	cat temp_data/raw_post_records.jsonl \
-	| ngst --config config/ingest_reddit_data.yaml --target sqldb --params=record_type:reddit_post --limit=1
+	| ngst --config config/ingest_reddit_data.yaml --target sqldb --params=record_type:reddit_post
 
 
 pipeline-ingest: pipeline-ingest-mongo pipeline-ingest-pg

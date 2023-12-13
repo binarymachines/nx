@@ -63,7 +63,7 @@ class PostgresDatastore(DataStore):
         self.bins.append(ValueBin(min=1000, max=None, name='>1000'))
 
         
-    def binned_value(self, value):
+    def get_binned_value(self, value):
 
         for bin in self.bins:
             if value >= bin.min:
@@ -73,16 +73,13 @@ class PostgresDatastore(DataStore):
                     return bin.name
 
 
-    def prepare_binned_values(self, record, *src_keys):
+    def prepare_binned_values(self, record):
 
         olap = self.service_object_registry.lookup('olap')
 
-        dim_upvotes_bin_name = self.binned_value(record['num_upvotes'])
-        dim_comments_bin_name = self.binned_value(record['num_comments'])
-        dim_crossposts_bin_name = self.binned_value(record['num_crossposts'])
-
-        print(f'+++++++++ Selected upvotes bin: {dim_upvotes_bin_name}')
-
+        dim_upvotes_bin_name = self.get_binned_value(record['num_upvotes'])
+        dim_comments_bin_name = self.get_binned_value(record['num_comments'])
+        dim_crossposts_bin_name = self.get_binned_value(record['num_crossposts'])
 
         bvalues = {
             'dim_upvotes_bin_id': olap.dim_id_for_value('dim_upvotes_bin', dim_upvotes_bin_name),
@@ -153,16 +150,15 @@ class PostgresDatastore(DataStore):
             post_data.update(self.prepare_date_time_values(record['created_utc']))
             post_data.update(self.prepare_binned_values(post_data))
 
-            """
             new_post = ObjectFactory.create_db_object(
                 "fact_post", db_service, **post_data
             )
-
-            # TODO: skip subsequent steps in case of exception
+            
             session.add(new_post)
-            """
-            return post_data
+            output_rec = post_data
 
+        return output_rec
+    
 
     def write(self, records, **write_params):
         postgres_svc = self.service_object_registry.lookup("postgres")
