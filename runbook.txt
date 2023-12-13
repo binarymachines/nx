@@ -18,6 +18,12 @@ To set up the tooling environment (in a local context) and run the data pipeline
  - set the necessary environment vars: 
 
 	PYTHONPATH must include the repository root directory. ( export PYTHONPATH=`pwd` )
+   NX_HOME (must be set to the repo root)
+   NX_PG_USER
+   NX_PG_PASSWORD
+   PGPASSWORD should be set to the same value as NX_PG_PASSWORD.
+   NX_PG_HOST (this will ordinarily be localhost in a testing scenario)
+   NX_PG_PORT (this is 15433 in the docker-compose file)
 
 Then, at the shell prompt, issue:
 
@@ -26,6 +32,7 @@ Then, at the shell prompt, issue:
  where <pipeline-name> is the name of a make target, to run the code.
 
  The make targets are divided into Utility, (SQL) script-generation, and pipeline targets.
+
  Run the init-dirs target first to create all the temporary directories the project will need.
 
  Then issue 

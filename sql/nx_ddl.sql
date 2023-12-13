@@ -62,11 +62,11 @@ CREATE TABLE "fact_post" (
   "subreddit_id" varchar(32),
   "subreddit_name" varchar(32),
   "author_name" varchar(32),
-  "num_upvotes" int2,
-  "num_comments" int2,
-  "num_crossposts" int2,
-  "score" int2,
-  "event_timestamp" int8,
+  "num_upvotes" int8,
+  "num_comments" int8,
+  "num_crossposts" int8,
+  "score" int8,
+  "event_timestamp" timestamp,
   "dim_date_month_id" int4,
   "dim_date_day_id" int4,
   "dim_date_year_id" int4,
@@ -77,7 +77,6 @@ CREATE TABLE "fact_post" (
   "dim_xposts_bin_id" int4,
   PRIMARY KEY ("id")
 );
-COMMENT ON COLUMN "fact_post"."id" IS ' ';
 
 
 

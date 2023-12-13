@@ -8,6 +8,7 @@ import uuid
 from collections import namedtuple
 from datetime import datetime
 from nx_utils import convert_to_timestamp
+from sqlalchemy.dialects import postgresql
 
 
 class ObjectFactory(object):
@@ -129,10 +130,12 @@ class PostgresDatastore(DataStore):
 
 
     def write_reddit_data(self, record, db_service, **write_params):
-        output_rec = record
-
+        
+        new_id = None
         with db_service.txn_scope() as session:  
 
+            dt = datetime.fromtimestamp(record['created_utc'])
+            
             post_data = {
                 'id': str(uuid.uuid4()),
                 'mdb_object_id': 'mongo_id_placeholder',
@@ -144,7 +147,7 @@ class PostgresDatastore(DataStore):
                 'num_comments': record['num_comments'],
                 'num_crossposts': record['num_crossposts'],
                 'score': record['score'],
-                'event_timestamp': record['created_utc']
+                'event_timestamp': dt
             }
 
             post_data.update(self.prepare_date_time_values(record['created_utc']))
@@ -155,9 +158,10 @@ class PostgresDatastore(DataStore):
             )
             
             session.add(new_post)
-            output_rec = post_data
+            session.flush()            
+            new_id = new_post.id
 
-        return output_rec
+        return new_id
     
 
     def write(self, records, **write_params):
@@ -167,8 +171,8 @@ class PostgresDatastore(DataStore):
             rec = json.loads(raw_rec)
             if record_type == "reddit_post":
                 try:
-                    output_rec = self.write_reddit_data(rec, postgres_svc)
-                    print(json.dumps(output_rec))
+                    id = self.write_reddit_data(rec, postgres_svc)
+                    print(id)
 
                 except Exception as err:
                     mlog_err(
