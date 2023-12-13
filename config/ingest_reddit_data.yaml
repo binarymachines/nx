@@ -41,7 +41,7 @@ service_objects:
     class: MongoService
     init_params:
       - name: host
-        value: 172.21.0.2
+        value: localhost
 
       - name: port
         value: 27017
